@@ -13,7 +13,6 @@ class CustomScript(cmdline.CoverageScript):
         self.import_coverage = None
         self.options = None
         self.code_ran = None
-        self.ran = False
 
     def make_import_coverage(self, roots):
         kwargs = self.coverage_args.copy()
@@ -49,10 +48,6 @@ class CustomScript(cmdline.CoverageScript):
 
     def deactivate_coverage(self):
         self.switch_coverage(self.coverage)
-
-    def complete(self):
-        if self.ran:
-            self._end_coverage()
 
     def command_line(self, argv):
         """The bulk of the command line interface to coverage.py.
@@ -177,8 +172,6 @@ class CustomScript(cmdline.CoverageScript):
     def do_run(self, options, args):
         """Implementation of 'coverage run'."""
 
-        self.ran = True
-
         if not args:
             self.help_fn("Nothing to do.")
             return cmdline.ERR
@@ -216,6 +209,8 @@ class CustomScript(cmdline.CoverageScript):
         except cmdline.NoSource:
             self.code_ran = False
             raise
+        finally:
+            self._end_coverage()
 
         return cmdline.OK
 
