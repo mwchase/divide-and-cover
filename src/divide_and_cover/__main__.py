@@ -2,7 +2,7 @@
 
 import sys
 
-import coverage_handler
+from . import coverage_handler
 
 
 coverage_handler.UNDER_WRAPPER = True
