@@ -15,7 +15,7 @@ with c_open(path.join(HERE, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='divide_and_cover',
 
-    version='0.1.0',
+    version='0.1.1',
 
     description='Picky test coverage for pytest',
     long_description=LONG_DESCRIPTION,
