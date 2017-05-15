@@ -1,7 +1,7 @@
 """A setuptools based setup module."""
 
 # Always prefer setuptools over distutils
-from setuptools import setup, find_packages
+from setuptools import setup
 # To use a consistent encoding
 from codecs import open as c_open
 from os import path
@@ -15,7 +15,7 @@ with c_open(path.join(HERE, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='pytest_divide_and_cover',
 
-    version='0.1.2',
+    version='0.1.3',
 
     description='Picky test coverage for pytest',
     long_description=LONG_DESCRIPTION,
@@ -40,7 +40,7 @@ setup(
 
     keywords='coverage ',
 
-    packages=find_packages('src', exclude=['contrib', 'docs', 'tests']),
+    packages=['pytest_divide_and_cover'],
     package_dir={'': 'src'},
 
     install_requires=['divide_and_cover', 'pytest'],
