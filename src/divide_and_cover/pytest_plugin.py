@@ -20,7 +20,7 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     if config.option.divide_and_cover:
-        from coverage_handler import UNDER_WRAPPER
+        from .coverage_handler import UNDER_WRAPPER
         if UNDER_WRAPPER:
             global FIDDLE_WITH_COVERAGE
             FIDDLE_WITH_COVERAGE = True
