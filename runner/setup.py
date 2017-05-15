@@ -15,9 +15,9 @@ with c_open(path.join(HERE, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='divide_and_cover',
 
-    version='0.1.1',
+    version='0.1.2',
 
-    description='Picky test coverage for pytest',
+    description='Picky test coverage runner',
     long_description=LONG_DESCRIPTION,
 
     # url='https://github.com/mwchase/class-namespaces',
@@ -25,17 +25,15 @@ setup(
     author='Max Woerner Chase',
     author_email='max.chase@gmail.com',
 
-    license='Apache 2.0',
+    license='MIT',
 
     classifiers=[
         'Development Status :: 3 - Alpha',
 
-        'License :: OSI Approved :: Apache Software License',
+        'License :: OSI Approved :: MIT License',
 
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
-
-        "Framework :: Pytest",
     ],
 
     keywords='coverage ',
@@ -43,11 +41,5 @@ setup(
     packages=find_packages('src', exclude=['contrib', 'docs', 'tests']),
     package_dir={'': 'src'},
 
-    install_requires=['coverage', 'pytest'],
-
-    entry_points={
-        'pytest11': [
-            'divide_and_cover = divide_and_cover.pytest_plugin',
-        ]
-    },
+    install_requires=['coverage'],
 )

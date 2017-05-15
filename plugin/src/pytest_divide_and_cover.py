@@ -20,7 +20,7 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     if config.option.divide_and_cover:
-        from .coverage_handler import UNDER_WRAPPER
+        from divide_and_cover.coverage_handler import UNDER_WRAPPER
         if UNDER_WRAPPER:
             global FIDDLE_WITH_COVERAGE
             FIDDLE_WITH_COVERAGE = True
@@ -32,7 +32,7 @@ def pytest_configure(config):
 # This is probably wrong
 def pytest_collection_modifyitems(session, config, items):
     if FIDDLE_WITH_COVERAGE:
-        from .coverage_handler import coverage_script
+        from divide_and_cover.coverage_handler import coverage_script
         modules = sys.modules.copy()
         paths = []
         for test_path in modules:
@@ -58,11 +58,11 @@ def pytest_collection_modifyitems(session, config, items):
 
 def pytest_runtest_setup(item):
     if FIDDLE_WITH_COVERAGE:
-        from .coverage_handler import coverage_script
+        from divide_and_cover.coverage_handler import coverage_script
         coverage_script.activate_coverage(item.obj.__module__)
 
 
 def pytest_runtest_teardown(item, nextitem):
     if FIDDLE_WITH_COVERAGE:
-        from .coverage_handler import coverage_script
+        from divide_and_cover.coverage_handler import coverage_script
         coverage_script.deactivate_coverage()
