@@ -40,7 +40,7 @@ setup(
 
     keywords='coverage ',
 
-    packages=['pytest_divide_and_cover'],
+    py_modules=['pytest_divide_and_cover'],
     package_dir={'': 'src'},
 
     install_requires=['divide_and_cover', 'pytest'],
