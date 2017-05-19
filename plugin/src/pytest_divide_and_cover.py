@@ -3,7 +3,7 @@ import re
 import sys
 
 
-TEST_MODULE = re.compile(r'tests\.((?:\w.+\.)*)test_(\w+)')
+TEST_MODULE = re.compile(r'tests\.((?:\w+\.)*)test_(\w+)')
 FIDDLE_WITH_COVERAGE = False
 
 
