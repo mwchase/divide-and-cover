@@ -3,6 +3,11 @@ import sys
 from coverage import cmdline
 
 
+def insert_unique(lst, item):
+    if item not in lst:
+        lst.append(item)
+
+
 class CustomScript(cmdline.CoverageScript):
 
     def __init__(self, *args, **kwargs):
@@ -19,10 +24,13 @@ class CustomScript(cmdline.CoverageScript):
         kwargs['source'] = sorted(set(kwargs['source']).union(roots))
         self.import_coverage = self.covpkg.Coverage(**kwargs)
 
-    def new_coverage(self, test_path, module_path):
+    def new_coverage(self, test_path, module_paths):
         # This should only be called during "run"
         kwargs = self.coverage_args.copy()
-        kwargs['source'] = kwargs['source'].copy() + [test_path, module_path]
+        kwargs['source'] = kwargs['source'].copy()
+        insert_unique(kwargs['source'], test_path)
+        for path in module_paths:
+            insert_unique(kwargs['source'], path)
         self.module_coverage[test_path] = self.covpkg.Coverage(**kwargs)
 
     def _end_coverage(self):

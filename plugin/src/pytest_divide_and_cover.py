@@ -36,9 +36,11 @@ def pytest_collection_modifyitems(session, config, items):
         modules = sys.modules.copy()
         paths = []
         for test_path in modules:
+            module_paths = []
             for module_path_ in module_path(test_path):
                 paths.append(module_path_)
-                coverage_script.new_coverage(test_path, module_path_)
+                module_paths.append(module_path_)
+            coverage_script.new_coverage(test_path, module_paths)
         # This next bit needs to be run under a coverage tracer, with source
         # based on paths. Specifically, it should use the root package from
         # each path
