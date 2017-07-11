@@ -1,3 +1,4 @@
+import collections
 import importlib
 import re
 import sys
@@ -7,10 +8,28 @@ TEST_MODULE = re.compile(r'tests\.((?:\w+\.)*)test_(\w+)')
 FIDDLE_WITH_COVERAGE = False
 
 
-def module_path(test_module):
-    match = TEST_MODULE.fullmatch(test_module)
-    if match:
-        yield ''.join(match.groups())
+class DivideAndCoverConfig(collections.namedtuple(
+        'DivideAndCoverConfig', 'auto_detect modules')):
+
+    @classmethod
+    def from_dict(cls, dct):
+        dct = dict(dct)
+        config = cls(auto_detect=dct.pop('auto_detect', True),
+                     modules=dct.pop('modules', ()))
+        for key in sorted(dct):
+            print('Unexpected Divide and Cover config key: {}'.format(key))
+        return config
+
+
+def module_path(test_module_path, test_module):
+    config = DivideAndCoverConfig.from_dict(
+        getattr(test_module, 'DIVIDE_AND_COVER_CONFIG', {}))
+    if config.auto_detect:
+        match = TEST_MODULE.fullmatch(test_module_path)
+        if match:
+            yield ''.join(match.groups())
+    for module in config.modules:
+        yield module
 
 
 def pytest_addoption(parser):
@@ -35,9 +54,9 @@ def pytest_collection_modifyitems(session, config, items):
         from divide_and_cover.coverage_handler import coverage_script
         modules = sys.modules.copy()
         paths = []
-        for test_path in modules:
+        for test_path, module in modules.items():
             module_paths = []
-            for module_path_ in module_path(test_path):
+            for module_path_ in module_path(test_path, module):
                 paths.append(module_path_)
                 module_paths.append(module_path_)
             coverage_script.new_coverage(test_path, module_paths)
