@@ -1,6 +1,22 @@
+import os
+import re
 import sys
 
 from coverage import cmdline
+
+
+PYTHON_FILE = re.compile(r'(.*)\.py')
+
+
+def get_module_names_under(path):
+    for entry in os.listdir(path):
+        if os.path.isdir(os.path.join(path, entry)):
+            if os.path.exists(os.path.join(path, entry, '__init__.py')):
+                yield entry
+        else:
+            match = PYTHON_FILE.fullmatch(entry)
+            if match:
+                yield entry.group(1)
 
 
 def insert_unique(lst, item):
