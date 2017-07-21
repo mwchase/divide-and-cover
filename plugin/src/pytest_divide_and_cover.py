@@ -60,21 +60,11 @@ def pytest_collection_modifyitems(session, config, items):
                 paths.append(module_path_)
                 module_paths.append(module_path_)
             coverage_script.new_coverage(test_path, module_paths)
-        # This next bit needs to be run under a coverage tracer, with source
-        # based on paths. Specifically, it should use the root package from
-        # each path
-        roots = sorted({path.split('.', 1)[0] for path in paths})
-        coverage_script.make_import_coverage(roots)
-        print('Covering packages under: {}'.format(roots))
-        coverage_script.switch_coverage(coverage_script.import_coverage)
-        try:
-            for path in paths:
-                try:
-                    importlib.import_module(path)
-                except ImportError:
-                    print('Could not import {}'.format(path))
-        finally:
-            coverage_script.deactivate_coverage()
+        for path in paths:
+            try:
+                importlib.import_module(path)
+            except ImportError:
+                print('Could not import {}'.format(path))
 
 
 def pytest_runtest_setup(item):

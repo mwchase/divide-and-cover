@@ -223,6 +223,11 @@ class CustomScript(cmdline.CoverageScript):
                 self.coverage.erase()
 
         self.coverage.start()
+        if os.path.isdir('src'):
+            roots = sorted({get_module_names_under('src')})
+            self.make_import_coverage(roots)
+            print('Covering packages under: {}'.format(roots))
+            self.switch_coverage(self.import_coverage)
         self.code_ran = True
         try:
             if options.module:
