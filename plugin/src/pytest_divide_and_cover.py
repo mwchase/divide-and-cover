@@ -1,11 +1,24 @@
 import collections
 import importlib
+import os
 import re
 import sys
 
 
 TEST_MODULE = re.compile(r'tests\.((?:\w+\.)*)test_(\w+)')
+PYTHON_FILE = re.compile(r'(.*)\.py')
 FIDDLE_WITH_COVERAGE = False
+
+
+def get_module_names_under(path):
+    for entry in os.listdir(path):
+        if os.path.isdir(os.path.join(path, entry)):
+            if os.path.exists(os.path.join(path, entry, '__init__.py')):
+                yield entry
+        else:
+            match = PYTHON_FILE.fullmatch(entry)
+            if match:
+                yield entry.group(1)
 
 
 class DivideAndCoverConfig(collections.namedtuple(
