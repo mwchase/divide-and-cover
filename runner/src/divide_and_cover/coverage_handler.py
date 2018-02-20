@@ -188,7 +188,8 @@ class CustomScript(cmdline.CoverageScript):
                                          options.fail_under)
 
             fail_under = self.coverage.get_option("report:fail_under")
-            if cmdline.should_fail_under(total, fail_under):
+            precision = self.coverage.get_option("report:precision")
+            if cmdline.should_fail_under(total, fail_under, precision):
                 return cmdline.FAIL_UNDER
 
         return cmdline.OK
