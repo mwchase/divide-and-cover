@@ -15,7 +15,7 @@ with c_open(path.join(HERE, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='divide_and_cover',
 
-    version='0.3.0',
+    version='0.4.0',
 
     description='Picky test coverage runner',
     long_description=LONG_DESCRIPTION,
@@ -41,5 +41,5 @@ setup(
     packages=find_packages('src', exclude=['contrib', 'docs', 'tests']),
     package_dir={'': 'src'},
 
-    install_requires=['coverage'],
+    install_requires=['coverage>=4.5,<4.6'],
 )
