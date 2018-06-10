@@ -24,10 +24,10 @@ def insert_unique(lst, item):
         lst.append(item)
 
 
-class CustomScript(cmdline.CoverageScript):
+class CustomScript(object):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, script):
+        self.script = script
         self.module_coverage = {}
         self.coverage_args = {}
         self.current_coverage = None
@@ -38,7 +38,7 @@ class CustomScript(cmdline.CoverageScript):
     def make_import_coverage(self, roots):
         kwargs = self.coverage_args.copy()
         kwargs['source'] = sorted(set(kwargs['source']).union(roots))
-        self.import_coverage = self.covpkg.Coverage(**kwargs)
+        self.import_coverage = self.script.covpkg.Coverage(**kwargs)
 
     def new_coverage(self, test_path, module_paths):
         # This should only be called during "run"
@@ -47,7 +47,7 @@ class CustomScript(cmdline.CoverageScript):
         insert_unique(kwargs['source'], test_path)
         for path in module_paths:
             insert_unique(kwargs['source'], path)
-        self.module_coverage[test_path] = self.covpkg.Coverage(**kwargs)
+        self.module_coverage[test_path] = self.script.covpkg.Coverage(**kwargs)
 
     def _end_coverage(self):
             self.current_coverage.stop()
@@ -71,7 +71,7 @@ class CustomScript(cmdline.CoverageScript):
             print('Unknown test path: {}'.format(test_path))
 
     def deactivate_coverage(self):
-        self.switch_coverage(self.coverage)
+        self.switch_coverage(self.script.coverage)
 
     def command_line(self, argv):
         """The bulk of the command line interface to coverage.py.
@@ -83,28 +83,28 @@ class CustomScript(cmdline.CoverageScript):
         """
         # Collect the command-line options.
         if not argv:
-            self.help_fn(topic='minimum_help')
+            self.script.help_fn(topic='minimum_help')
             return cmdline.OK
 
         # The command syntax we parse depends on the first argument.  Global
         # switch syntax always starts with an option.
-        self.global_option = argv[0].startswith('-')
-        if self.global_option:
+        self.script.global_option = argv[0].startswith('-')
+        if self.script.global_option:
             parser = cmdline.GlobalOptionParser()
         else:
             parser = cmdline.CMDS.get(argv[0])
             if not parser:
-                self.help_fn("Unknown command: '%s'" % argv[0])
+                self.script.help_fn("Unknown command: '%s'" % argv[0])
                 return cmdline.ERR
             argv = argv[1:]
 
-        parser.help_fn = self.help_fn
+        parser.help_fn = self.script.help_fn
         ok, options, args = parser.parse_args_ok(argv)
         if not ok:
             return cmdline.ERR
 
         # Handle help and version.
-        if self.do_help(options, args, parser):
+        if self.script.do_help(options, args, parser):
             return cmdline.OK
 
         # We need to be able to import from the current directory, because
@@ -133,14 +133,14 @@ class CustomScript(cmdline.CoverageScript):
         )
 
         # Do something.
-        self.current_coverage = self.coverage = self.covpkg.Coverage(
-            **self.coverage_args)
+        self.current_coverage = self.script.coverage = (
+            self.script.covpkg.Coverage(**self.coverage_args))
 
         if options.action == "debug":
             return self.do_debug(args)
 
         elif options.action == "erase":
-            self.coverage.erase()
+            self.script.coverage.erase()
             return cmdline.OK
 
         elif options.action == "run":
@@ -148,10 +148,10 @@ class CustomScript(cmdline.CoverageScript):
 
         elif options.action == "combine":
             if options.append:
-                self.coverage.load()
+                self.script.coverage.load()
             data_dirs = args or None
-            self.coverage.combine(data_dirs, strict=True)
-            self.coverage.save()
+            self.script.coverage.combine(data_dirs, strict=True)
+            self.script.coverage.save()
             return cmdline.OK
 
         # Remaining actions are reporting, with some common options.
@@ -162,33 +162,33 @@ class CustomScript(cmdline.CoverageScript):
             include=include,
         )
 
-        self.coverage.load()
+        self.script.coverage.load()
 
         total = None
         if options.action == "report":
-            total = self.coverage.report(
+            total = self.script.coverage.report(
                 show_missing=options.show_missing,
                 skip_covered=options.skip_covered, **report_args)
         elif options.action == "annotate":
-            self.coverage.annotate(
+            self.script.coverage.annotate(
                 directory=options.directory, **report_args)
         elif options.action == "html":
-            total = self.coverage.html_report(
+            total = self.script.coverage.html_report(
                 directory=options.directory, title=options.title,
                 skip_covered=options.skip_covered, **report_args)
         elif options.action == "xml":
             outfile = options.outfile
-            total = self.coverage.xml_report(outfile=outfile, **report_args)
+            total = self.script.coverage.xml_report(outfile=outfile, **report_args)
 
         if total is not None:
             # Apply the command line fail-under options, and then use the
             # config value, so we can get fail_under from the config file.
             if options.fail_under is not None:
-                self.coverage.set_option("report:fail_under",
-                                         options.fail_under)
+                self.script.coverage.set_option(
+                    "report:fail_under", options.fail_under)
 
-            fail_under = self.coverage.get_option("report:fail_under")
-            precision = self.coverage.get_option("report:precision")
+            fail_under = self.script.coverage.get_option("report:fail_under")
+            precision = self.script.coverage.get_option("report:precision")
             if cmdline.should_fail_under(total, fail_under, precision):
                 return cmdline.FAIL_UNDER
 
@@ -198,11 +198,11 @@ class CustomScript(cmdline.CoverageScript):
         """Implementation of 'coverage run'."""
 
         if not args:
-            self.help_fn("Nothing to do.")
+            self.script.help_fn("Nothing to do.")
             return cmdline.ERR
 
-        if options.append and self.coverage.get_option("run:parallel"):
-            self.help_fn("Can't append to data files in parallel mode.")
+        if options.append and self.script.coverage.get_option("run:parallel"):
+            self.script.help_fn("Can't append to data files in parallel mode.")
             return cmdline.ERR
 
         if options.concurrency == "multiprocessing":
@@ -213,17 +213,17 @@ class CustomScript(cmdline.CoverageScript):
                 # As it happens, all of these options have no default, meaning
                 # they will be None if they have not been specified.
                 if getattr(options, opt_name) is not None:
-                    self.help_fn(
+                    self.script.help_fn(
                         "Options affecting multiprocessing must be specified "
                         "in a configuration file."
                     )
                     return cmdline.ERR
 
-        if not self.coverage.get_option("run:parallel"):
+        if not self.script.coverage.get_option("run:parallel"):
             if not options.append:
-                self.coverage.erase()
+                self.script.coverage.erase()
 
-        self.coverage.start()
+        self.script.coverage.start()
         if os.path.isdir('src'):
             roots = sorted(set(get_module_names_under('src')))
             self.make_import_coverage(roots)
@@ -232,10 +232,10 @@ class CustomScript(cmdline.CoverageScript):
         self.code_ran = True
         try:
             if options.module:
-                self.run_python_module(args[0], args)
+                self.script.run_python_module(args[0], args)
             else:
                 filename = args[0]
-                self.run_python_file(filename, args)
+                self.script.run_python_file(filename, args)
         except cmdline.NoSource:
             self.code_ran = False
             raise
@@ -245,4 +245,4 @@ class CustomScript(cmdline.CoverageScript):
         return cmdline.OK
 
 
-coverage_script = CustomScript()
+coverage_script = CustomScript(cmdline.CoverageScript())
