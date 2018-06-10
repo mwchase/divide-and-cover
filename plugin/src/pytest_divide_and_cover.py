@@ -5,7 +5,6 @@ import sys
 
 
 TEST_MODULE = re.compile(r'tests\.((?:\w+\.)*)test_(\w+)')
-FIDDLE_WITH_COVERAGE = False
 
 
 class DivideAndCoverConfig(collections.namedtuple(
@@ -37,43 +36,54 @@ def pytest_addoption(parser):
                      help='activate divide and cover tracing')
 
 
-def pytest_configure(config):
-    if config.option.divide_and_cover:
-        from divide_and_cover.coverage_handler import UNDER_WRAPPER
-        if UNDER_WRAPPER:
-            global FIDDLE_WITH_COVERAGE
-            FIDDLE_WITH_COVERAGE = True
-        else:
-            print('Warning: called with --divide-and-cover, but not running '
-                  'under divide_and_cover. Not activating plugin.')
+class DivideAndCoverPlugin(object):
+
+    fiddle_with_coverage = False
+
+    def __init__(self, modules, importer):
+        self.modules = modules
+        self.importer = importer
+
+    def pytest_configure(self, config):
+        if config.option.divide_and_cover:
+            from divide_and_cover.coverage_handler import UNDER_WRAPPER
+            if UNDER_WRAPPER:
+                self.fiddle_with_coverage = True
+            else:
+                print('Warning: called with --divide-and-cover, but not '
+                      'running under divide_and_cover. Not activating plugin.')
+
+    def pytest_collection_modifyitems(self, session, config, items):
+        if self.fiddle_with_coverage:
+            from divide_and_cover.coverage_handler import coverage_script
+            modules = self.modules.copy()
+            paths = []
+            for test_path, module in modules.items():
+                module_paths = []
+                for module_path_ in module_path(test_path, module):
+                    paths.append(module_path_)
+                    module_paths.append(module_path_)
+                coverage_script.new_coverage(test_path, module_paths)
+            for path in paths:
+                try:
+                    self.importer(path)
+                except ImportError:
+                    print('Could not import {}'.format(path))
+
+    def pytest_runtest_setup(self, item):
+        if self.fiddle_with_coverage:
+            from divide_and_cover.coverage_handler import coverage_script
+            coverage_script.activate_coverage(item.obj.__module__)
+
+    def pytest_runtest_teardown(self, item, nextitem):
+        if self.fiddle_with_coverage:
+            from divide_and_cover.coverage_handler import coverage_script
+            coverage_script.deactivate_coverage()
 
 
-# This is probably wrong
-def pytest_collection_modifyitems(session, config, items):
-    if FIDDLE_WITH_COVERAGE:
-        from divide_and_cover.coverage_handler import coverage_script
-        modules = sys.modules.copy()
-        paths = []
-        for test_path, module in modules.items():
-            module_paths = []
-            for module_path_ in module_path(test_path, module):
-                paths.append(module_path_)
-                module_paths.append(module_path_)
-            coverage_script.new_coverage(test_path, module_paths)
-        for path in paths:
-            try:
-                importlib.import_module(path)
-            except ImportError:
-                print('Could not import {}'.format(path))
+PLUGIN = DivideAndCoverPlugin(sys.modules, importlib.import_module)
 
-
-def pytest_runtest_setup(item):
-    if FIDDLE_WITH_COVERAGE:
-        from divide_and_cover.coverage_handler import coverage_script
-        coverage_script.activate_coverage(item.obj.__module__)
-
-
-def pytest_runtest_teardown(item, nextitem):
-    if FIDDLE_WITH_COVERAGE:
-        from divide_and_cover.coverage_handler import coverage_script
-        coverage_script.deactivate_coverage()
+pytest_configure = PLUGIN.pytest_configure
+pytest_collection_modifyitems = PLUGIN.pytest_collection_modifyitems
+pytest_runtest_setup = PLUGIN.pytest_runtest_setup
+pytest_runtest_teardown = PLUGIN.pytest_runtest_teardown
