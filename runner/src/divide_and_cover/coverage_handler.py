@@ -53,7 +53,7 @@ class CustomScript(object):
             self.current_coverage.stop()
             if self.code_ran:
                 data_file = self.current_coverage.get_option("run:data_file")
-                if self.path_exists(data_file):
+                if self.script.path_exists(data_file):
                     self.current_coverage.combine(data_paths=[data_file])
             self.current_coverage.save()
 
