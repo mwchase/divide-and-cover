@@ -44,10 +44,13 @@ class DivideAndCoverPlugin(object):
         self.modules = modules
         self.importer = importer
 
+    @property
+    def coverage_handler(self):
+        return self.importer('divide_and_cover.coverage_handler')
+
     def pytest_configure(self, config):
         if config.option.divide_and_cover:
-            from divide_and_cover.coverage_handler import UNDER_WRAPPER
-            if UNDER_WRAPPER:
+            if self.coverage_handler.UNDER_WRAPPER:
                 self.fiddle_with_coverage = True
             else:
                 print('Warning: called with --divide-and-cover, but not '
@@ -55,7 +58,7 @@ class DivideAndCoverPlugin(object):
 
     def pytest_collection_modifyitems(self, session, config, items):
         if self.fiddle_with_coverage:
-            from divide_and_cover.coverage_handler import coverage_script
+            coverage_script = self.coverage_handler.coverage_script
             modules = self.modules.copy()
             paths = []
             for test_path, module in modules.items():
@@ -72,13 +75,12 @@ class DivideAndCoverPlugin(object):
 
     def pytest_runtest_setup(self, item):
         if self.fiddle_with_coverage:
-            from divide_and_cover.coverage_handler import coverage_script
-            coverage_script.activate_coverage(item.obj.__module__)
+            self.coverage_handler.coverage_script.activate_coverage(
+                item.obj.__module__)
 
     def pytest_runtest_teardown(self, item, nextitem):
         if self.fiddle_with_coverage:
-            from divide_and_cover.coverage_handler import coverage_script
-            coverage_script.deactivate_coverage()
+            self.coverage_handler.coverage_script.deactivate_coverage()
 
 
 PLUGIN = DivideAndCoverPlugin(sys.modules, importlib.import_module)
