@@ -35,15 +35,10 @@ class CustomScript(object):
         self.options = None
         self.code_ran = None
 
-    def make_import_coverage(self, roots):
-        kwargs = self.coverage_args.copy()
-        kwargs['source'] = sorted(set(kwargs['source']).union(roots))
-        self.import_coverage = self.script.covpkg.Coverage(**kwargs)
-
     def new_coverage(self, test_path, module_paths):
         # This should only be called during "run"
         kwargs = self.coverage_args.copy()
-        kwargs['source'] = kwargs['source'].copy()
+        kwargs['source'] = (kwargs['source'] or ['tests']).copy()
         insert_unique(kwargs['source'], test_path)
         for path in module_paths:
             insert_unique(kwargs['source'], path)
@@ -112,7 +107,7 @@ class CustomScript(object):
         sys.path[0] = ''
 
         # Listify the list options.
-        source = (cmdline.unshell_list(options.source) or []) + ['tests']
+        source = cmdline.unshell_list(options.source)
         omit = cmdline.unshell_list(options.omit)
         include = cmdline.unshell_list(options.include)
         debug = cmdline.unshell_list(options.debug)
@@ -224,11 +219,6 @@ class CustomScript(object):
                 self.script.coverage.erase()
 
         self.script.coverage.start()
-        if os.path.isdir('src'):
-            roots = sorted(set(get_module_names_under('src')))
-            self.make_import_coverage(roots)
-            print('Covering packages under: {}'.format(roots))
-            self.switch_coverage(self.import_coverage)
         self.code_ran = True
         try:
             if options.module:
