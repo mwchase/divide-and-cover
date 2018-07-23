@@ -137,7 +137,7 @@ class CustomScript(object):
             self.script.covpkg.Coverage(**self.coverage_args))
 
         if options.action == "debug":
-            return self.do_debug(args)
+            return self.script.do_debug(args)
 
         elif options.action == "erase":
             self.script.coverage.erase()
