@@ -31,6 +31,7 @@ class CustomScript(object):
         self.module_coverage = {}
         self.coverage_args = {}
         self.current_coverage = None
+        self.base_coverage = None
         self.import_coverage = None
         self.options = None
         self.code_ran = None
@@ -38,10 +39,12 @@ class CustomScript(object):
     def new_coverage(self, test_path, module_paths):
         # This should only be called during "run"
         kwargs = self.coverage_args.copy()
-        kwargs['source'] = (kwargs['source'] or ['tests']).copy()
+        kwargs['source'] = (self.base_coverage.config.source or []).copy()
         insert_unique(kwargs['source'], test_path)
         for path in module_paths:
             insert_unique(kwargs['source'], path)
+        if 'src' in kwargs['source']:
+            kwargs['source'].remove('src')
         self.module_coverage[test_path] = self.script.covpkg.Coverage(**kwargs)
 
     def _end_coverage(self):
@@ -128,7 +131,7 @@ class CustomScript(object):
         )
 
         # Do something.
-        self.current_coverage = self.script.coverage = (
+        self.base_coverage = self.current_coverage = self.script.coverage = (
             self.script.covpkg.Coverage(**self.coverage_args))
 
         if options.action == "debug":
