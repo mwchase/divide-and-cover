@@ -15,7 +15,7 @@ with c_open(path.join(HERE, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='divide_and_cover',
 
-    version='0.7.1',
+    version='0.7.2',
 
     description='Picky test coverage runner',
     long_description=LONG_DESCRIPTION,
@@ -28,7 +28,7 @@ setup(
     license='MIT',
 
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 7 - Inactive',
 
         'License :: OSI Approved :: MIT License',
 

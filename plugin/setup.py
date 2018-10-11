@@ -15,7 +15,7 @@ with c_open(path.join(HERE, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='pytest_divide_and_cover',
 
-    version='0.5.0',
+    version='0.5.1',
 
     description='Picky test coverage for pytest',
     long_description=LONG_DESCRIPTION,
@@ -28,7 +28,7 @@ setup(
     license='Apache 2.0',
 
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 7 - Inactive',
 
         'License :: OSI Approved :: Apache Software License',
 
